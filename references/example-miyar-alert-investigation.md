@@ -8,6 +8,8 @@ MIYAR (Active Counterfactual Investigation Lab) is a student graduation project:
 
 Invocation: `/paper-orchestra plan <path-to-project>`
 
+Autonomous alternative: `/paper-orchestra auto "Counterfactual evidence checks for SOC alert investigation"`. Because no experimental results exist yet, an auto run should end as **Draft Pending Evidence**: a research proposal with an Evaluation Plan marked `PENDING EVALUATION`, the matrix below, and the missing timing and accuracy data listed in `limitations.md`.
+
 ## Phase 1 - plan (excerpt)
 
 - **RQ:** Does prompting analysts with counterfactual checks ("what evidence would exist if this alert were benign?") improve investigation decisions on a Wazuh alert compared with a standard triage workflow?

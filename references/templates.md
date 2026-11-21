@@ -86,3 +86,54 @@ Decisions / approvals:
 Verified / Assumption / Missing counts:
 Open questions:
 ```
+
+In `auto` mode the worklog is `research-worklog.md`. It starts with:
+
+```
+# Research worklog - <topic>
+Mode: auto      Started: YYYY-MM-DD HH:MM      Project root: <path>
+Topic source: argument | inferred from conversation | inferred from <file>
+Output folder: paper-orchestra/ | paper-orchestra/run-YYYYMMDD-HHMM/
+Defaults applied:
+- Venue: generic academic manuscript (none specified)
+- ...
+```
+
+## Limitations (`limitations.md`, auto mode)
+
+```
+# Limitations, threats to validity, and reproducibility requirements
+
+## Scope limitations
+## Threats to validity
+- Internal:
+- External:
+- Construct:
+## Evidence gaps
+| Gap | Affects claim / section | Type (source / data / experiment) | What would close it |
+## Unresolved review items (need new evidence)
+## Reproducibility requirements
+- Data and versions:
+- Configuration and environment:
+- Seeds / hardware:
+- Artifacts to release (and restrictions):
+```
+
+## Final report (auto mode)
+
+```
+Research title:
+Research questions:
+  RQ1:
+Sources: N verified | N partially-verified | N unverified | N rejected
+Phases completed: 1 plan, 2 lit, 3 outline, 4 write, 5 review (N rounds), 6 latex
+Main findings supported by evidence:
+  - <finding> - [S0x] / <data file>      (or: none - no experimental results provided)
+Outstanding evidence / experimental requirements:
+  -
+Review issues: N identified, N resolved, N moved to limitations.md
+Generated files:
+  -
+Final status: Complete | Draft Pending Evidence | Blocked
+Reason for status:
+```

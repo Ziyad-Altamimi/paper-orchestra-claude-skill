@@ -19,7 +19,7 @@ It is **not** an official Google product or Google-authored skill, is not affili
 
 ## Deliberate differences
 
-- Human approval gates between phases; single-phase runs.
+- Human approval gates between phases by default; single-phase runs. An optional `auto` mode runs end to end like the original pipeline, but keeps every integrity rule, produces a proposal instead of results when data is missing, and reports an honest final status.
 - Verified / Assumption / Missing labelling everywhere.
 - Limitations must be stated (the original refinement prompt instructed the opposite).
 - General-purpose (any field), not just ML conference papers.

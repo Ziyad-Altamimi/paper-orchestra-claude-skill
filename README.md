@@ -22,6 +22,7 @@ Everything it writes goes into your research project, not into the skill folder.
 ## Key features
 
 - **Phased workflow with approval gates.** Claude stops after each major phase and asks before moving on.
+- **Autonomous mode (`auto`).** Give a topic once and Claude runs all six phases without stopping. It applies documented defaults, runs up to three review-and-revision rounds, and finishes with an honest status: *Complete*, *Draft Pending Evidence*, or *Blocked*.
 - **Run one phase or all of them.** For example, review an existing draft without running the earlier phases.
 - **Source-evidence matrix.** Each source gets a DOI or URL, the claims it supports, where in the source each claim appears, and a verification status (`verified`, `partially-verified`, `unverified`, `rejected`).
 - **Explicit evidence labels.** Content is marked **Verified**, **Assumption**, or **Missing**. Drafts use inline markers such as `[CITATION NEEDED: ...]`, `[DATA MISSING: ...]`, and `[ASSUMPTION: ...]`.
@@ -88,6 +89,15 @@ Run the full workflow, phase by phase:
 /paper-orchestra
 ```
 
+Run everything autonomously from one topic, with no approval gates:
+
+```text
+/paper-orchestra auto "Counterfactual evidence checks for SOC alert investigation"
+/paper-orchestra auto
+```
+
+Without a topic, Claude infers it from the conversation or project files and asks once only if it can't. Auto mode writes `research-plan.md`, `literature-review.md`, `source-evidence-matrix.md`, `paper-outline.md`, `manuscript.md`, `critical-review.md`, `limitations.md`, `research-worklog.md`, and `latex/main.tex` + `latex/references.bib` into `paper-orchestra/`. If a previous run exists, it uses a new `run-YYYYMMDD-HHMM/` folder instead. If no experimental results exist, the output is a research proposal with the evaluation clearly marked as pending, never invented results.
+
 Run a single phase:
 
 ```text
@@ -136,7 +146,7 @@ You don't have to use the slash command. The skill's description lets Claude Cod
 | `review` | **Critical review.** Strengths, weaknesses, questions, a score with rationale, checklist results, and a prioritized revision plan. Revisions are applied only after your approval, for up to about three rounds. | `05_review_report.md` |
 | `latex` | **LaTeX preparation (optional).** Converts approved sections into LaTeX using your venue template or a minimal `article` skeleton. Offers to compile only if a TeX toolchain is already installed. | `06_latex/` |
 
-Use `all`, or no phase argument, for the full workflow.
+Use `all`, or no phase argument, for the full workflow with approval gates, or `auto` for the full workflow without them.
 
 ## Example research use cases
 

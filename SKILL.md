@@ -1,7 +1,7 @@
 ---
 name: paper-orchestra
-description: Phased, evidence-first research-paper workflow - research planning, verified literature review with a source-evidence matrix, paper outline, section drafting, critical peer-style review, and optional LaTeX preparation. Use when the user wants to plan, write, review, or restructure an academic/technical paper, thesis chapter, or research report from ideas, notes, logs, or experimental results; when they ask for a literature review or citation verification; or when they invoke /paper-orchestra (optionally with a phase name such as plan, lit, outline, write, review, latex).
-argument-hint: "[phase: plan|lit|outline|write|review|latex|all] [project path or topic]"
+description: Phased, evidence-first research-paper workflow - research planning, verified literature review with a source-evidence matrix, paper outline, section drafting, critical peer-style review, and optional LaTeX preparation. Use when the user wants to plan, write, review, or restructure an academic/technical paper, thesis chapter, or research report from ideas, notes, logs, or experimental results; when they ask for a literature review or citation verification; when they want a full research workflow run autonomously from a single topic; or when they invoke /paper-orchestra (optionally with a mode such as auto, plan, lit, outline, write, review, latex).
+argument-hint: "[auto \"topic\" | plan|lit|outline|write|review|latex|all] [project path or topic]"
 ---
 
 # PaperOrchestra (Claude Code adaptation)
@@ -20,7 +20,8 @@ These override any user request for speed, length, or polish.
 6. Do not claim superiority over a cited work unless the user's own results compare against it directly. Otherwise frame it as related, concurrent, or orthogonal work.
 7. Do not invent experiments a reviewer asks for. Record them as limitations or future work.
 8. **Limitations are always stated honestly** (this deliberately departs from the original refinement prompt, which told the model to avoid stating limitations).
-9. No ghost-authorship deception: drafts are the user's work product to review, edit, and take responsibility for. Remind the user of their institution's AI-use and disclosure policy when a draft is meant for submission.
+9. Keep proposed methods, hypotheses, and planned experiments distinct from actual results. Never describe a proposed experiment as completed, never claim an empirical contribution without supporting data, and never turn an untested hypothesis into a conclusion.
+10. No ghost-authorship deception: drafts are the user's work product to review, edit, and take responsibility for. Remind the user of their institution's AI-use and disclosure policy when a draft is meant for submission.
 
 ## Where files go
 
@@ -58,11 +59,14 @@ Parse the first argument (`$ARGUMENTS`) or the user's request:
 | `write` | 4. Section writing | outline, evidence matrix, data |
 | `review` | 5. Critical review | an existing draft |
 | `latex` | 6. LaTeX preparation (optional) | approved sections, verified .bib |
-| `all` / none | Full workflow, phase by phase | - |
+| `all` / none | Full workflow, phase by phase, with approval gates | - |
+| `auto ["topic"]` | Full workflow, all six phases, **no approval gates** - see *Autonomous mode* | a topic (or inferable context) |
 
-Running a single phase is fully supported. If a phase's inputs are missing, say what is missing, offer to run the earlier phase, or proceed with clearly marked assumptions - the user chooses.
+Anything other than `auto` uses the approval-based workflow below. Running a single phase is fully supported. If a phase's inputs are missing, say what is missing, offer to run the earlier phase, or proceed with clearly marked assumptions - the user chooses.
 
 ## Phase gates
+
+(Manual modes only. `auto` skips these gates - see *Autonomous mode*.)
 
 Work one phase at a time. At the end of each major phase:
 
@@ -170,15 +174,74 @@ Act as a rigorous, fair reviewer (adapted from PaperOrchestra's review-driven re
 - Keep the template preamble intact; check `\begin`/`\end` pairing; keep unresolved markers as visible `\textcolor{red}{...}` notes.
 - If `latexmk`/`pdflatex`/`bibtex` already exist, offer to compile and report errors and warnings (undefined citations or references, overfull boxes). Do not install a TeX distribution or any other dependency.
 
+## Autonomous mode (`auto`)
+
+Invocation: `/paper-orchestra auto "Research Topic"` or `/paper-orchestra auto`. Runs Phases 0-6 end to end **without approval gates**. Every integrity rule above still applies in full; autonomy changes who decides routine choices, never what may be claimed.
+
+### Topic resolution
+1. Use the quoted topic if given (any further argument is the project path).
+2. Otherwise infer it from the current conversation, then from project context (README, idea/notes files, existing drafts). State the inferred topic in the first progress update and in `research-worklog.md`.
+3. Only if neither yields a clear topic, ask **once**. If still unanswered, stop with status **Blocked**.
+
+### Defaults for non-critical decisions
+Do not stop to ask about these; pick a default, record it under "Defaults applied" in `research-worklog.md`, and continue:
+- Venue: generic academic manuscript (Abstract, Introduction, Related Work, Method/Approach, Evaluation or Evaluation Plan, Discussion, Limitations, Conclusion, References).
+- Length: about 6,000-8,000 words. Citation style: numeric (`plainnat`/`unsrtnat`). Language: the language of the request.
+- Literature cutoff: today. Project root: argument path, else current working directory.
+- Section order, figure plan, and wording choices: your judgment, documented.
+
+### When to stop anyway
+Pause only for: a fundamentally ambiguous topic (see above); an action needing authentication, permission, or private resources you cannot reach; or an irreversible or destructive action. Missing data is **not** a reason to stop - it changes the output type (below).
+
+### Evidence-dependent output type
+- **Results present** (logs, CSVs, notebooks with outputs): write a full empirical manuscript from that data.
+- **No results**: write a rigorous research proposal / draft. The Evaluation section becomes an *Evaluation Plan* (design, datasets or scenarios, baselines, metrics, analysis) under a visible `PENDING EVALUATION - no results reported` banner; contributions are phrased as proposed; the abstract and conclusion make no empirical claims.
+- **Source verification unavailable** (no web access or connectors): continue with local sources only, mark every unchecked reference `unverified`, and keep them out of factual claims.
+
+### Output layout (auto mode)
+```
+<project>/paper-orchestra/
+  research-plan.md            # Phase 1
+  source-evidence-matrix.md   # Phase 2 (matrix template in references/templates.md)
+  literature-review.md        # Phase 2
+  paper-outline.md            # Phase 3
+  manuscript.md               # Phase 4, revised in Phase 5
+  critical-review.md          # Phase 5, one section per round
+  limitations.md              # limitations, threats to validity, reproducibility requirements
+  research-worklog.md         # progress, defaults, decisions, per-phase counts
+  latex/main.tex              # Phase 6
+  latex/references.bib        # Phase 6, verified/partially-verified entries only
+```
+Create other files only when genuinely needed. Keep all intermediate artifacts so the run is auditable.
+
+**No overwrites:** before writing, check each target. If it exists, never replace it. If `paper-orchestra/` already holds a previous run, write this run to `paper-orchestra/run-YYYYMMDD-HHMM/` with the same layout; for single existing files, write `<name>.rN.md`. Record which choice was made in the worklog. Within the run, revisions of `manuscript.md` are preserved as `manuscript.r0.md`, `manuscript.r1.md`, ... before each review round edits the current file.
+
+### Execution
+1. **Phase 0-1:** intake and planning as described above -> `research-plan.md`.
+2. **Phase 2:** search and verify -> `source-evidence-matrix.md`, `literature-review.md`. Aim for enough verified sources to support every claim; a smaller verified set beats a larger unverified one.
+3. **Phase 3:** outline -> `paper-outline.md`.
+4. **Phase 4:** draft the whole manuscript -> `manuscript.md`, with inline `[CITATION NEEDED]`, `[DATA MISSING]`, `[ASSUMPTION]`, and `[PROPOSED]` markers where applicable.
+5. **Phase 5:** up to **three** review-and-revision rounds. Each round: write a review (checklist + scored assessment) to `critical-review.md`, snapshot the manuscript, apply fixes that existing evidence supports, log what was resolved and what was not. Stop early when a round finds no material issue that can be fixed with available evidence. Unresolvable items go to `limitations.md`.
+6. **Phase 6:** generate `latex/main.tex` and `latex/references.bib` from the final manuscript; check `\cite` keys against the .bib and `\begin`/`\end` pairing. If `latexmk`/`pdflatex` already exist, compile once and record the result; never install anything. Then run the final validation: the full quality checklist, plus a search of the manuscript for unresolved markers.
+
+### Progress updates
+After each phase, send one or two lines (phase done, key counts, any default applied). Do not ask for confirmation.
+
+### Final report
+End with (template in `references/templates.md`): research title; research questions; number of `verified` sources (and partially-verified/unverified counts); phases completed; main findings **supported by evidence** (each with its source or data file; none if no results); outstanding evidence and experimental requirements; review issues identified vs. resolved; paths to all generated files; and a final status:
+- **Complete** - all claims supported, empirical results present where claimed, no unresolved critical markers.
+- **Draft Pending Evidence** - workflow finished but results, sources, or data are missing (e.g. evaluation pending). Never call this Complete.
+- **Blocked** - could not proceed (unclear topic, required access unavailable); state what is needed.
+
 ## Tool usage summary
 
 - Glob / Grep / Read for local materials; Write / Edit for outputs (after existence checks).
 - WebSearch / WebFetch (or connected scholarly MCPs) for discovery and verification; record the URL actually opened.
 - Bash only for local checks, e.g. recomputing a table value, grepping cite keys against the .bib, or compiling LaTeX with tools already installed.
-- AskUserQuestion at phase gates and for overwrite decisions; a task list for multi-phase runs.
+- AskUserQuestion at phase gates and for overwrite decisions (manual modes only); a task list for multi-phase runs, including `auto`.
 
 ## Reference files
 
-- `references/templates.md` - evidence matrix, outline, review report, and worklog templates.
+- `references/templates.md` - evidence matrix, outline, review report, worklog, limitations, and auto-mode final report templates.
 - `references/example-miyar-alert-investigation.md` - short worked example (security alert investigation study).
 - `references/provenance.md` - origin and relationship to PaperOrchestra.
